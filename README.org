@@ -1,0 +1,66 @@
+#+TITLE: Driver Monitoring System (DMS) – Object Detection Using YOLOv8
+#+AUTHOR: Eid Al-Khaldi
+#+OPTIONS: toc:nil num:nil
+
+*Overview*
+This project implements a custom object detection pipeline using YOLOv8 to identify multiple safety-relevant conditions from driver images. The model detects the following objects in a vehicle cabin:
+
+- Open Eye
+- Closed Eye
+- Cigarette
+- Phone
+- Seatbelt
+
+The goal is to use this system to support (but not replace) components in broader vehicle safety solutions, such as driver monitoring or emergency stop systems.
+
+*Disclaimer*
+I do not claim ownership or end-to-end authorship of any real-world Driver Monitoring System (DMS) or Emergency Stop System. This project demonstrates how I trained a computer vision model using a publicly available dataset for academic and portfolio purposes only.
+
+*Dataset*
+The dataset used is publicly available on Kaggle:
+[[https://www.kaggle.com/datasets/habbas11/dms-driver-monitoring-system]]
+
+It is organized into:
+- =train/images= and =train/labels=
+- =valid/images= and =valid/labels=
+- =test/images= and =test/labels=
+
+Each image has a corresponding YOLO-format =.txt= file describing bounding boxes and class labels.
+
+*Model & Training*
+The notebook:
+- Visualizes label distribution and sample images with bounding boxes
+- Trains a YOLOv8 model (using Ultralytics) on the dataset
+- Validates on a separate validation set
+- Saves the best model weights based on validation loss
+
+To train:
+
+#+BEGIN_SRC python
+from ultralytics import YOLO
+model = YOLO("yolov8n.pt")
+model.train(data="data.yaml", epochs=50, imgsz=640, batch=16)
+#+END_SRC
+
+*Evaluation*
+The notebook computes:
+- Validation & test accuracy
+- Classification report (precision, recall, F1-score)
+- Confusion matrix
+- Visual inspection of model predictions
+
+*Output*
+- Training curves saved in =runs/detect/train/results.png=
+- Model weights: =runs/detect/train/weights/best.pt=
+- Sample predictions visualized on test images
+
+*Usage*
+To reuse this model for prediction:
+
+#+BEGIN_SRC python
+results = model.predict(source="./data/test/images", conf=0.25)
+#+END_SRC
+
+---
+
+If you'd like this converted to Markdown (README.md) instead, just let me know.

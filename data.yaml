@@ -1,0 +1,11 @@
+path: /data/home/alkhaldieid/repos/dms/datasets/data
+train: train/images
+val: valid/images
+
+nc: 5
+names:
+  - Open Eye
+  - Closed Eye
+  - Cigarette
+  - Phone
+  - Seatbelt
