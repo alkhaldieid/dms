@@ -1,66 +1,90 @@
-#+TITLE: Driver Monitoring System (DMS) – Object Detection Using YOLOv8
+#+TITLE: Driver Eye Monitoring – YOLOv8-Based Standalone System
 #+AUTHOR: Eid Al-Khaldi
-#+OPTIONS: toc:nil num:nil
 
 *Overview*
-This project implements a custom object detection pipeline using YOLOv8 to identify multiple safety-relevant conditions from driver images. The model detects the following objects in a vehicle cabin:
+This project implements a standalone driver eye monitoring system using a custom-trained YOLOv8 model. The system detects "Open Eye" and "Closed Eye" classes in real-time from a camera feed.
 
-- Open Eye
-- Closed Eye
-- Cigarette
-- Phone
-- Seatbelt
+If the driver's eyes remain closed for more than 5 seconds, an alert is triggered. If no driver intervention is detected after a grace period, the system escalates to an emergency stop signal.
 
-The goal is to use this system to support (but not replace) components in broader vehicle safety solutions, such as driver monitoring or emergency stop systems.
+⚠️ This system runs independently and is not connected to a vehicle control interface like OpenPilot in this repo. 
 
 *Disclaimer*
-I do not claim ownership or end-to-end authorship of any real-world Driver Monitoring System (DMS) or Emergency Stop System. This project demonstrates how I trained a computer vision model using a publicly available dataset for academic and portfolio purposes only.
+I do not claim ownership of any production-grade emergency stop or driver monitoring system. This project is for demonstration, academic, and prototyping purposes only.
 
-*Dataset*
-The dataset used is publicly available on Kaggle:
-[[https://www.kaggle.com/datasets/habbas11/dms-driver-monitoring-system]]
+*Detection Classes*
+- 0: Open Eye
+- 1: Closed Eye
 
-It is organized into:
-- =train/images= and =train/labels=
-- =valid/images= and =valid/labels=
-- =test/images= and =test/labels=
+*Features*
+- Real-time inference using YOLOv8 (Ultralytics)
+- Drowsiness alert based on eye-closure duration
+- Simulated emergency stop signal
+- Optional logging and configuration support
 
-Each image has a corresponding YOLO-format =.txt= file describing bounding boxes and class labels.
+*Directory Structure*
 
-*Model & Training*
-The notebook:
-- Visualizes label distribution and sample images with bounding boxes
-- Trains a YOLOv8 model (using Ultralytics) on the dataset
-- Validates on a separate validation set
-- Saves the best model weights based on validation loss
-
-To train:
-
-#+BEGIN_SRC python
-from ultralytics import YOLO
-model = YOLO("yolov8n.pt")
-model.train(data="data.yaml", epochs=50, imgsz=640, batch=16)
+#+BEGIN_SRC
+driver_eye_monitor/
+├── driver_eye_monitor.py       # Main script
+├── model/
+│   └── yolov8n_eye.pt          # Trained YOLOv8 model
+├── utils/
+│   └── camera_utils.py         # (Optional) Helper for camera access
+├── config/
+│   └── settings.yaml           # (Optional) Tunable parameters
+├── logs/
+│   └── drowsiness_log.txt      # (Optional) Drowsiness event log
+├── README.org                  # This file
+└── LICENSE                     # MIT or other license
 #+END_SRC
 
-*Evaluation*
-The notebook computes:
-- Validation & test accuracy
-- Classification report (precision, recall, F1-score)
-- Confusion matrix
-- Visual inspection of model predictions
+*Requirements*
+- Python 3.9+
+- PyTorch + CUDA (for GPU inference)
+- ultralytics
+- opencv-python
+- cereal (for OpenPilot-style messaging)
 
-*Output*
-- Training curves saved in =runs/detect/train/results.png=
-- Model weights: =runs/detect/train/weights/best.pt=
-- Sample predictions visualized on test images
+Install dependencies:
+
+#+BEGIN_SRC bash
+pip install ultralytics opencv-python cereal pyyaml
+#+END_SRC
 
 *Usage*
-To reuse this model for prediction:
 
-#+BEGIN_SRC python
-results = model.predict(source="./data/test/images", conf=0.25)
+From inside the root directory:
+
+#+BEGIN_SRC bash
+python driver_eye_monitor.py
 #+END_SRC
 
----
+You should see live detection running on your webcam or USB camera.
 
-If you'd like this converted to Markdown (README.md) instead, just let me know.
+*Configuration*
+
+Optional settings can be stored in =config/settings.yaml=:
+
+#+BEGIN_SRC yaml
+model_path: model/yolov8n_eye.pt
+camera_index: 0
+confidence: 0.5
+eye_closed_id: 1
+eye_open_id: 0
+alarm_threshold_sec: 5
+emergency_grace_sec: 3
+#+END_SRC
+
+If =settings.yaml= is present, =driver_eye_monitor.py= will read from it automatically.
+
+*Future Work*
+- Integration with OpenPilot forks (e.g. camera_monitoringd or visiond)
+- Sending real CAN or planner-based emergency commands
+- Expansion to detect additional states (phone use, yawning, etc.)
+- Export model to TensorRT or ONNX for embedded deployment
+
+*License*
+MIT License (see LICENSE file)
+
+*Author*
+Eid AlKhaldi, PhD. 
