@@ -1,0 +1,7 @@
+model_path: model/yolov8n_eye.pt
+camera_index: 0
+confidence: 0.5
+eye_closed_id: 1
+eye_open_id: 0
+alarm_threshold_sec: 5
+emergency_grace_sec: 3
